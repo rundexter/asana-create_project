@@ -4,23 +4,33 @@
 {
     //Required. Inputs the module expects.
     "inputs": [
-        //e.g.
-        /*
         {
-            "id": "from",
-            "title":"From"
+            "id": "workspace",
+            "title":"Workspace ID"
+        },
+        {
+            "id": "notes",
+            "title":"More detailed"
+        },
+        {
+            "id": "name",
+            "title":"Name of the project"
         }
-        */
     ],
     //Required. Outputs the module emits.
     "outputs": [
-      //e.g.
-      /*
         {
-            "id": "from",
-            "title":"From"
+            "id": "id",
+            "title":"ID Project"
+        },
+        {
+            "id": "notes",
+            "title":"More detailed"
+        },
+        {
+            "id": "name",
+            "title":"Name of the project"
         }
-      */
     ],
     "title": "Asana Create Project" /* Required.A display name for the module */
 }
