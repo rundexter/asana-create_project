@@ -95,7 +95,13 @@ module.exports = {
 
         this.apiRequest('post', 'projects', _.pick(step.inputs(), inputAttributes), auth, function (error, responce, body) {
 
-             this.complete(this.pickResult(body, globalPickResult));
+            if (error || body.errors) {
+
+                this.fail(error || body.errors);
+            } else {
+
+                this.complete(this.pickResult(body, globalPickResult));
+            }
         }.bind(this));
     }
 };
