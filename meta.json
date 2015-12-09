@@ -32,5 +32,6 @@
             "title":"Name of the project"
         }
     ],
+    "icon": "tasks",
     "title": "Asana Create Project" /* Required.A display name for the module */
 }
