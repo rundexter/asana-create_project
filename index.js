@@ -1,99 +1,21 @@
-var _ = require('lodash');
-var request = require('request').defaults({
-    baseUrl: 'https://app.asana.com/api/1.0/'
-});
-var globalPickResult = {
-    'data.id': 'id',
-    'data.notes': 'notes',
-    'data.name': 'name'
-};
-
-var inputAttributes = ['workspace', 'name', 'notes'];
+var _ = require('lodash'),
+    util = require('./util.js'),
+    request = require('request').defaults({
+        baseUrl: 'https://app.asana.com/api/1.0/'
+    }),
+    pickInputs = {
+        'workspace': { key: 'workspace', validate: { req: true } },
+        'team': 'team',
+        'notes': 'notes',
+        'name': 'name'
+    },
+    pickOutputs = {
+        'data.id': 'id',
+        'data.notes': 'notes',
+        'data.name': 'name'
+    };
 
 module.exports = {
-    /**
-     * Return pick result.
-     *
-     * @param output
-     * @param pickResult
-     * @returns {*}
-     */
-    pickResult: function (output, pickResult) {
-        var result = {};
-
-        _.map(_.keys(pickResult), function (resultVal) {
-
-            if (_.has(output, resultVal)) {
-
-                if (_.isObject(pickResult[resultVal])) {
-                    if (_.isArray(_.get(output, resultVal))) {
-
-                        if (!_.isArray(result[pickResult[resultVal].key])) {
-                            result[pickResult[resultVal].key] = [];
-                        }
-
-                        _.map(_.get(output, resultVal), function (inOutArrayValue) {
-
-                            result[pickResult[resultVal].key].push(this.pickResult(inOutArrayValue, pickResult[resultVal].fields));
-                        }, this);
-                    } else if (_.isObject(_.get(output, resultVal))){
-
-                        result[pickResult[resultVal].key] = this.pickResult(_.get(output, resultVal), pickResult[resultVal].fields);
-                    }
-                } else {
-                    _.set(result, pickResult[resultVal], _.get(output, resultVal));
-                }
-            }
-        }, this);
-
-        return result;
-    },
-
-    /**
-     * Return auth object.
-     *
-     *
-     * @param dexter
-     * @returns {*}
-     */
-    authParams: function (dexter) {
-        var res = {};
-
-        if (dexter.environment('asana_access_token')) {
-            res = {
-                bearer: dexter.environment('asana_access_token')
-            };
-        } else {
-            this.fail('A [asana_access_token] env variables need for this module');
-        }
-
-        return res;
-    },
-
-    /**
-     * Send api request.
-     *
-     * @param method
-     * @param api
-     * @param options
-     * @param auth
-     * @param callback
-     */
-    apiRequest: function (method, api, options, auth, callback) {
-
-        request[method]({url: api, form: options, auth: auth, json: true}, callback);
-    },
-
-    prepareStringInputs: function (inputs, inputAttributes) {
-        var result = {};
-
-        _.map(_.pick(inputs, inputAttributes), function (inputValue, inputKey) {
-
-            result[inputKey] = _(inputValue).toString();
-        });
-
-        return result;
-    },
 
     /**
      * The main entry point for the Dexter module
@@ -102,17 +24,27 @@ module.exports = {
      * @param {AppData} dexter Container for all data used in this workflow.
      */
     run: function(step, dexter) {
-        var auth = this.authParams(dexter);
+        var credentials = dexter.provider('asana').credentials(),
+            inputs = util.pickInputs(step, pickInputs),
+            validateErrors = util.checkValidateErrors(inputs, pickInputs);
 
-        this.apiRequest('post', 'projects', this.prepareStringInputs(step.inputs(), inputAttributes), auth, function (error, responce, body) {
+        console.log(credentials);
+        // check params.
+        if (validateErrors)
+            return this.fail(validateErrors);
 
-            if (error || body.errors) {
-
+        //send API request
+        request.post({
+            uri: 'projects',
+            form: inputs,
+            oauth: credentials,
+            json: true
+        }, function (error, responce, body) {
+            if (error || (body && body.errors))
                 this.fail(error || body.errors);
-            } else {
+            else
+                this.complete(util.pickOutputs(body, pickOutputs) || {});
 
-                this.complete(this.pickResult(body, globalPickResult));
-            }
         }.bind(this));
     }
 };

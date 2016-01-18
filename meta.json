@@ -9,6 +9,10 @@
             "title":"Workspace ID"
         },
         {
+            "id": "team",
+            "title":"Team ID"
+        },
+        {
             "id": "notes",
             "title":"More detailed"
         },
@@ -32,6 +36,9 @@
             "title":"Name of the project"
         }
     ],
+    "providers": [{
+        "name": "bitbucket"
+    }],
     "icon": "tasks",
     "title": "Asana Create Project" /* Required.A display name for the module */
 }
