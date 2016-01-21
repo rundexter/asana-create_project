@@ -10,9 +10,9 @@ var _ = require('lodash'),
         'name': 'name'
     },
     pickOutputs = {
-        'data.id': 'id',
-        'data.notes': 'notes',
-        'data.name': 'name'
+        'id': 'id',
+        'notes': 'notes',
+        'name': 'name'
     };
 
 module.exports = {
