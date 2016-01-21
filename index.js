@@ -24,11 +24,10 @@ module.exports = {
      * @param {AppData} dexter Container for all data used in this workflow.
      */
     run: function(step, dexter) {
-        var credentials = dexter.provider('asana').credentials(),
+        var credentials = dexter.provider('asana').credentials('access_token'),
             inputs = util.pickInputs(step, pickInputs),
             validateErrors = util.checkValidateErrors(inputs, pickInputs);
 
-        console.log(credentials);
         // check params.
         if (validateErrors)
             return this.fail(validateErrors);
@@ -37,13 +36,15 @@ module.exports = {
         request.post({
             uri: 'projects',
             form: inputs,
-            oauth: credentials,
+            auth: {
+                'bearer': credentials
+            },
             json: true
-        }, function (error, responce, body) {
-            if (error || (body && body.errors))
-                this.fail(error || body.errors);
+        }, function (error, response, body) {
+            if (error || (body && body.errors) || response.statusCode >= 400)
+                this.fail(error || body.errors || { statusCode: response.statusCode, headers: response.headers, body: body });
             else
-                this.complete(util.pickOutputs(body, pickOutputs) || {});
+                this.complete(util.pickOutputs(body.data, pickOutputs) || {});
 
         }.bind(this));
     }
